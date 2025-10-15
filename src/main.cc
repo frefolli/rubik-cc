@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <cstdlib>
 #include <iostream>
 #include <ostream>
 #include <raylib.h>
@@ -112,13 +113,7 @@ struct Rubik {
   }
 
   void end_rotation() {
-    std::cout << "F0 := " << faces[0].blocks << std::endl;
-    std::cout << "F8 := " << faces[8].blocks << std::endl;
-
     #include "transition.cc"
-
-    std::cout << "F0 := " << faces[0].blocks << std::endl;
-    std::cout << "F8 := " << faces[8].blocks << std::endl;
     rotating.face_idx = faces.size();
     rotating.angle = 0.0f;
   }
@@ -182,17 +177,20 @@ int main() {
   };
   int cameraMode = CAMERA_CUSTOM;
 
+  bool engage_random = false;
+  bool engage_revert = false;
+
   Rubik rubik = Rubik::Load();
 
   SetTargetFPS(60);
   while (!WindowShouldClose()) {
     if (rubik.rotating.face_idx >= rubik.faces.size()) {
-      if (IsKeyDown(KEY_R)) {
-        if (IsKeyDown(KEY_RIGHT_SHIFT)) {
+      if (IsKeyDown(KEY_Q)) {
           rubik.reset();
-        } else {
-          rubik.revert();
-        }
+      } else if (IsKeyPressed(KEY_W)) {
+          engage_random = !engage_random;
+      } else if (IsKeyPressed(KEY_E)) {
+          engage_revert = !engage_revert;
       } else if (IsKeyDown(KEY_ONE)) {
         rubik.rotate(0, IsKeyDown(KEY_RIGHT_SHIFT));
       } else if (IsKeyDown(KEY_TWO)) {
@@ -211,6 +209,10 @@ int main() {
         rubik.rotate(7, IsKeyDown(KEY_RIGHT_SHIFT));
       } else if (IsKeyDown(KEY_NINE)) {
         rubik.rotate(8, IsKeyDown(KEY_RIGHT_SHIFT));
+      } else if (engage_revert) {
+          rubik.revert();
+      } else if (engage_random) {
+        rubik.rotate(std::rand() % 9, std::rand() % 2);
       }
     }
 
