@@ -1,9 +1,20 @@
 #include <cstdint>
 #include <iostream>
+#include <ostream>
 #include <raylib.h>
 #include <raymath.h>
 #include <vector>
 #include <string>
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out, const std::vector<T>& vec) {
+  out << "{ ";
+  for (auto el : vec) {
+    out << el << " ";
+  }
+  out << "}";
+  return out;
+}
 
 struct Block {
   Model model;
@@ -46,6 +57,7 @@ struct Face {
 struct Rubik {
   std::vector<Block> blocks;
   std::vector<Face> faces;
+  std::vector<std::pair<uintmax_t, bool>> history;
 
   struct Rotating {
     uintmax_t face_idx = -1;
@@ -88,223 +100,25 @@ struct Rubik {
     };
 
     std::vector<Face> faces = {
-      Face::Load({ 0,  1,  2,  5,  8,  7,  6,  3},  4, {.x = 0.0f, .y = 1.0f, .z = 0.0f}),
-      Face::Load({ 9, 10, 11, 14, 17, 16, 15, 12}, 13, {.x = 0.0f, .y = 1.0f, .z = 0.0f}),
-      Face::Load({18, 19, 20, 23, 26, 25, 24, 21}, 22, {.x = 0.0f, .y = 1.0f, .z = 0.0f}),
-      Face::Load({ 8,  5,  2, 11, 20, 23, 26, 17}, 14, {.x = 0.0f, .y = 0.0f, .z = 1.0f}),
-      Face::Load({ 7,  4,  1, 10, 19, 22, 25, 16}, 13, {.x = 0.0f, .y = 0.0f, .z = 1.0f}),
-      Face::Load({ 6,  3,  0,  9, 18, 21, 24, 15}, 12, {.x = 0.0f, .y = 0.0f, .z = 1.0f}),
-      Face::Load({24, 25, 26, 17,  8,  7,  6, 15}, 16, {.x = 1.0f, .y = 0.0f, .z = 0.0f}),
-      Face::Load({21, 22, 23, 14,  5,  4,  3, 12}, 13, {.x = 1.0f, .y = 0.0f, .z = 0.0f}),
-      Face::Load({18, 19, 20, 11,  2,  1,  0,  9}, 10, {.x = 1.0f, .y = 0.0f, .z = 0.0f}),
+      #include "faces.cc"
     };
 
     return Rubik {
       .blocks = blocks,
       .faces = faces,
-      .rotating = Rotating {}
+      .history = {},
+      .rotating = Rotating {},
     };
   }
 
   void end_rotation() {
-    switch (rotating.face_idx) {
-      case 0: {
-        if (rotating.direction) {
-          faces[0].blocks = {faces[0].blocks[2], faces[0].blocks[3], faces[0].blocks[4], faces[0].blocks[5], faces[0].blocks[6], faces[0].blocks[7], faces[0].blocks[0], faces[0].blocks[1]};
-        } else {
-          faces[0].blocks = {faces[0].blocks[6], faces[0].blocks[7], faces[0].blocks[0], faces[0].blocks[1], faces[0].blocks[2], faces[0].blocks[3], faces[0].blocks[4], faces[0].blocks[5]};
-        }
-        faces[3].blocks[2] = faces[0].blocks[2];
-        faces[3].blocks[1] = faces[0].blocks[3];
-        faces[3].blocks[0] = faces[0].blocks[4];
-        faces[4].blocks[2] = faces[0].blocks[1];
-        faces[4].blocks[0] = faces[0].blocks[5];
-        faces[5].blocks[2] = faces[0].blocks[0];
-        faces[5].blocks[0] = faces[0].blocks[6];
-        faces[5].blocks[1] = faces[0].blocks[7];
-        faces[6].blocks[4] = faces[0].blocks[4];
-        faces[6].blocks[5] = faces[0].blocks[5];
-        faces[6].blocks[6] = faces[0].blocks[6];
-        faces[7].blocks[4] = faces[0].blocks[3];
-        faces[7].blocks[6] = faces[0].blocks[7];
-        faces[8].blocks[6] = faces[0].blocks[0];
-        faces[8].blocks[5] = faces[0].blocks[1];
-        faces[8].blocks[4] = faces[0].blocks[2];
-      }; break;
-      case 1: {
-        if (rotating.direction) {
-          faces[1].blocks = {faces[1].blocks[2], faces[1].blocks[3], faces[1].blocks[4], faces[1].blocks[5], faces[1].blocks[6], faces[1].blocks[7], faces[1].blocks[0], faces[1].blocks[1]};
-        } else {
-          faces[1].blocks = {faces[1].blocks[6], faces[1].blocks[7], faces[1].blocks[0], faces[1].blocks[1], faces[1].blocks[2], faces[1].blocks[3], faces[1].blocks[4], faces[1].blocks[5]};
-        }
-        faces[3].blocks[3] = faces[1].blocks[2];
-        faces[3].blocks[7] = faces[1].blocks[4];
-        faces[4].blocks[3] = faces[1].blocks[1];
-        faces[4].blocks[7] = faces[1].blocks[5];
-        faces[5].blocks[3] = faces[1].blocks[0];
-        faces[5].blocks[7] = faces[1].blocks[6];
-        faces[6].blocks[3] = faces[1].blocks[4];
-        faces[6].blocks[7] = faces[1].blocks[6];
-        faces[7].blocks[3] = faces[1].blocks[3];
-        faces[7].blocks[7] = faces[1].blocks[7];
-        faces[8].blocks[7] = faces[1].blocks[0];
-        faces[8].blocks[3] = faces[1].blocks[2];
-      }; break;
-      case 2: {
-        if (rotating.direction) {
-          faces[2].blocks = {faces[2].blocks[2], faces[2].blocks[3], faces[2].blocks[4], faces[2].blocks[5], faces[2].blocks[6], faces[2].blocks[7], faces[2].blocks[0], faces[2].blocks[1]};
-        } else {
-          faces[2].blocks = {faces[2].blocks[6], faces[2].blocks[7], faces[2].blocks[0], faces[2].blocks[1], faces[2].blocks[2], faces[2].blocks[3], faces[2].blocks[4], faces[2].blocks[5]};
-        }
-        faces[3].blocks[4] = faces[2].blocks[2];
-        faces[3].blocks[5] = faces[2].blocks[3];
-        faces[3].blocks[6] = faces[2].blocks[4];
-        faces[4].blocks[4] = faces[2].blocks[1];
-        faces[4].blocks[6] = faces[2].blocks[5];
-        faces[5].blocks[4] = faces[2].blocks[0];
-        faces[5].blocks[6] = faces[2].blocks[6];
-        faces[5].blocks[5] = faces[2].blocks[7];
-        faces[6].blocks[2] = faces[2].blocks[4];
-        faces[6].blocks[1] = faces[2].blocks[5];
-        faces[6].blocks[0] = faces[2].blocks[6];
-        faces[7].blocks[2] = faces[2].blocks[3];
-        faces[7].blocks[0] = faces[2].blocks[7];
-        faces[8].blocks[0] = faces[2].blocks[0];
-        faces[8].blocks[1] = faces[2].blocks[1];
-        faces[8].blocks[2] = faces[2].blocks[2];
-      }; break;
-      case 3: {
-        if (rotating.direction) {
-          faces[3].blocks = {faces[3].blocks[2], faces[3].blocks[3], faces[3].blocks[4], faces[3].blocks[5], faces[3].blocks[6], faces[3].blocks[7], faces[3].blocks[0], faces[3].blocks[1]};
-        } else {
-          faces[3].blocks = {faces[3].blocks[6], faces[3].blocks[7], faces[3].blocks[0], faces[3].blocks[1], faces[3].blocks[2], faces[3].blocks[3], faces[3].blocks[4], faces[3].blocks[5]};
-        }
-        faces[0].blocks[2] = faces[3].blocks[2];
-        faces[0].blocks[3] = faces[3].blocks[1];
-        faces[0].blocks[4] = faces[3].blocks[0];
-        faces[1].blocks[2] = faces[3].blocks[3];
-        faces[1].blocks[4] = faces[3].blocks[7];
-        faces[2].blocks[2] = faces[3].blocks[4];
-        faces[2].blocks[3] = faces[3].blocks[5];
-        faces[2].blocks[4] = faces[3].blocks[6];
-        faces[6].blocks[4] = faces[3].blocks[0];
-        faces[6].blocks[2] = faces[3].blocks[6];
-        faces[6].blocks[3] = faces[3].blocks[7];
-        faces[7].blocks[4] = faces[3].blocks[1];
-        faces[7].blocks[2] = faces[3].blocks[5];
-        faces[8].blocks[4] = faces[3].blocks[2];
-        faces[8].blocks[3] = faces[3].blocks[3];
-        faces[8].blocks[2] = faces[3].blocks[4];
-      }; break;
-      case 4: {
-        if (rotating.direction) {
-          faces[4].blocks = {faces[4].blocks[2], faces[4].blocks[3], faces[4].blocks[4], faces[4].blocks[5], faces[4].blocks[6], faces[4].blocks[7], faces[4].blocks[0], faces[4].blocks[1]};
-        } else {
-          faces[4].blocks = {faces[4].blocks[6], faces[4].blocks[7], faces[4].blocks[0], faces[4].blocks[1], faces[4].blocks[2], faces[4].blocks[3], faces[4].blocks[4], faces[4].blocks[5]};
-        }
-        faces[0].blocks[1] = faces[4].blocks[2];
-        faces[0].blocks[5] = faces[4].blocks[0];
-        faces[1].blocks[1] = faces[4].blocks[3];
-        faces[1].blocks[5] = faces[4].blocks[7];
-        faces[2].blocks[1] = faces[4].blocks[4];
-        faces[2].blocks[5] = faces[4].blocks[6];
-        faces[6].blocks[5] = faces[4].blocks[0];
-        faces[6].blocks[1] = faces[4].blocks[6];
-        faces[7].blocks[5] = faces[4].blocks[1];
-        faces[7].blocks[1] = faces[4].blocks[5];
-        faces[8].blocks[5] = faces[4].blocks[2];
-        faces[8].blocks[1] = faces[4].blocks[4];
-      }; break;
-      case 5: {
-        if (rotating.direction) {
-          faces[5].blocks = {faces[5].blocks[2], faces[5].blocks[3], faces[5].blocks[4], faces[5].blocks[5], faces[5].blocks[6], faces[5].blocks[7], faces[5].blocks[0], faces[5].blocks[1]};
-        } else {
-          faces[5].blocks = {faces[5].blocks[6], faces[5].blocks[7], faces[5].blocks[0], faces[5].blocks[1], faces[5].blocks[2], faces[5].blocks[3], faces[5].blocks[4], faces[5].blocks[5]};
-        }
-        faces[0].blocks[0] = faces[5].blocks[2];
-        faces[0].blocks[6] = faces[5].blocks[0];
-        faces[0].blocks[7] = faces[5].blocks[1];
-        faces[1].blocks[0] = faces[5].blocks[3];
-        faces[1].blocks[6] = faces[5].blocks[7];
-        faces[2].blocks[0] = faces[5].blocks[4];
-        faces[2].blocks[6] = faces[5].blocks[6];
-        faces[2].blocks[7] = faces[5].blocks[5];
-        faces[6].blocks[6] = faces[5].blocks[0];
-        faces[6].blocks[0] = faces[5].blocks[6];
-        faces[6].blocks[7] = faces[5].blocks[7];
-        faces[7].blocks[6] = faces[5].blocks[1];
-        faces[7].blocks[0] = faces[5].blocks[5];
-        faces[8].blocks[6] = faces[5].blocks[2];
-        faces[8].blocks[7] = faces[5].blocks[3];
-        faces[8].blocks[0] = faces[5].blocks[4];
-      }; break;
-      case 6: {
-        if (rotating.direction) {
-          faces[6].blocks = {faces[6].blocks[2], faces[6].blocks[3], faces[6].blocks[4], faces[6].blocks[5], faces[6].blocks[6], faces[6].blocks[7], faces[6].blocks[0], faces[6].blocks[1]};
-        } else {
-          faces[6].blocks = {faces[6].blocks[6], faces[6].blocks[7], faces[6].blocks[0], faces[6].blocks[1], faces[6].blocks[2], faces[6].blocks[3], faces[6].blocks[4], faces[6].blocks[5]};
-        }
-        faces[0].blocks[4] = faces[6].blocks[4];
-        faces[0].blocks[5] = faces[6].blocks[5];
-        faces[0].blocks[6] = faces[6].blocks[6];
-        faces[1].blocks[4] = faces[6].blocks[3];
-        faces[1].blocks[6] = faces[6].blocks[7];
-        faces[2].blocks[4] = faces[6].blocks[2];
-        faces[2].blocks[5] = faces[6].blocks[1];
-        faces[2].blocks[6] = faces[6].blocks[0];
-        faces[3].blocks[0] = faces[6].blocks[4];
-        faces[3].blocks[6] = faces[6].blocks[2];
-        faces[3].blocks[7] = faces[6].blocks[3];
-        faces[4].blocks[0] = faces[6].blocks[5];
-        faces[4].blocks[6] = faces[6].blocks[1];
-        faces[5].blocks[0] = faces[6].blocks[6];
-        faces[5].blocks[6] = faces[6].blocks[0];
-        faces[5].blocks[7] = faces[6].blocks[7];
-      }; break;
-      case 7: {
-        if (rotating.direction) {
-          faces[7].blocks = {faces[7].blocks[2], faces[7].blocks[3], faces[7].blocks[4], faces[7].blocks[5], faces[7].blocks[6], faces[7].blocks[7], faces[7].blocks[0], faces[7].blocks[1]};
-        } else {
-          faces[7].blocks = {faces[7].blocks[6], faces[7].blocks[7], faces[7].blocks[0], faces[7].blocks[1], faces[7].blocks[2], faces[7].blocks[3], faces[7].blocks[4], faces[7].blocks[5]};
-        }
-        faces[0].blocks[3] = faces[7].blocks[4];
-        faces[0].blocks[7] = faces[7].blocks[6];
-        faces[1].blocks[3] = faces[7].blocks[3];
-        faces[1].blocks[7] = faces[7].blocks[7];
-        faces[2].blocks[3] = faces[7].blocks[2];
-        faces[2].blocks[7] = faces[7].blocks[0];
-        faces[3].blocks[1] = faces[7].blocks[4];
-        faces[3].blocks[5] = faces[7].blocks[2];
-        faces[4].blocks[1] = faces[7].blocks[5];
-        faces[4].blocks[5] = faces[7].blocks[1];
-        faces[5].blocks[1] = faces[7].blocks[6];
-        faces[5].blocks[5] = faces[7].blocks[0];
-      }; break;
-      case 8: {
-        if (rotating.direction) {
-          faces[8].blocks = {faces[8].blocks[2], faces[8].blocks[3], faces[8].blocks[4], faces[8].blocks[5], faces[8].blocks[6], faces[8].blocks[7], faces[8].blocks[0], faces[8].blocks[1]};
-        } else {
-          faces[8].blocks = {faces[8].blocks[6], faces[8].blocks[7], faces[8].blocks[0], faces[8].blocks[1], faces[8].blocks[2], faces[8].blocks[3], faces[8].blocks[4], faces[8].blocks[5]};
-        }
-        faces[0].blocks[0] = faces[8].blocks[6];
-        faces[0].blocks[1] = faces[8].blocks[5];
-        faces[0].blocks[2] = faces[8].blocks[4];
-        faces[1].blocks[0] = faces[8].blocks[7];
-        faces[1].blocks[2] = faces[8].blocks[3];
-        faces[2].blocks[0] = faces[8].blocks[0];
-        faces[2].blocks[1] = faces[8].blocks[1];
-        faces[2].blocks[2] = faces[8].blocks[2];
-        faces[3].blocks[2] = faces[8].blocks[4];
-        faces[3].blocks[3] = faces[8].blocks[3];
-        faces[3].blocks[4] = faces[8].blocks[2];
-        faces[4].blocks[2] = faces[8].blocks[5];
-        faces[4].blocks[4] = faces[8].blocks[1];
-        faces[5].blocks[2] = faces[8].blocks[6];
-        faces[5].blocks[3] = faces[8].blocks[7];
-        faces[5].blocks[4] = faces[8].blocks[0];
-      }; break;
-    }
+    std::cout << "F0 := " << faces[0].blocks << std::endl;
+    std::cout << "F8 := " << faces[8].blocks << std::endl;
 
+    #include "transition.cc"
+
+    std::cout << "F0 := " << faces[0].blocks << std::endl;
+    std::cout << "F8 := " << faces[8].blocks << std::endl;
     rotating.face_idx = faces.size();
     rotating.angle = 0.0f;
   }
@@ -313,6 +127,8 @@ struct Rubik {
     rotating.face_idx = face_idx;
     rotating.direction = direction;
     rotating.angle = 0.0f;
+
+    history.push_back({rotating.face_idx, rotating.direction});
   }
 
   void update() {
@@ -321,11 +137,18 @@ struct Rubik {
       for (auto block_idx : faces[rotating.face_idx].blocks) {
         blocks[block_idx].model.transform = MatrixMultiply(blocks[block_idx].model.transform, MatrixRotate(faces[rotating.face_idx].axis, delta));
       }
-      blocks[faces[rotating.face_idx].center].model.transform = MatrixMultiply(blocks[faces[rotating.face_idx].center].model.transform, MatrixRotate(faces[rotating.face_idx].axis, delta));
       rotating.angle += rotating.angle_delta;
       if (rotating.angle >= 90.0f) {
         end_rotation();
       }
+    }
+  }
+
+  void revert() {
+    if (!history.empty()) {
+      rotate(history.back().first, !history.back().second);
+      history.pop_back();
+      history.pop_back();
     }
   }
 
@@ -336,6 +159,7 @@ struct Rubik {
     for (Face& face : faces) {
       face.reset();
     }
+    history.clear();
   }
 };
 
@@ -350,7 +174,7 @@ int main() {
   ShowCursor();
 
   Camera camera = {
-    .position = Vector3 {.x =  -2.0f, .y = 2.0f, .z = -2.0f },
+    .position = Vector3 {.x =  -2.0f, .y = 2.0f, .z = 2.0f },
     .target = Vector3 {.x =  0.0f, .y = 0.0f, .z = 0.0f },
     .up = Vector3 {.x =  0.0f, .y = 1.0f, .z = 0.0f },
     .fovy = 90.0f,
@@ -363,25 +187,29 @@ int main() {
   SetTargetFPS(60);
   while (!WindowShouldClose()) {
     if (rubik.rotating.face_idx >= rubik.faces.size()) {
-      if (IsKeyPressed(KEY_R)) {
-        rubik.reset();
-      } else if (IsKeyPressed(KEY_ONE)) {
+      if (IsKeyDown(KEY_R)) {
+        if (IsKeyDown(KEY_RIGHT_SHIFT)) {
+          rubik.reset();
+        } else {
+          rubik.revert();
+        }
+      } else if (IsKeyDown(KEY_ONE)) {
         rubik.rotate(0, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyPressed(KEY_TWO)) {
+      } else if (IsKeyDown(KEY_TWO)) {
         rubik.rotate(1, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyPressed(KEY_THREE)) {
+      } else if (IsKeyDown(KEY_THREE)) {
         rubik.rotate(2, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyPressed(KEY_FOUR)) {
+      } else if (IsKeyDown(KEY_FOUR)) {
         rubik.rotate(3, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyPressed(KEY_FIVE)) {
+      } else if (IsKeyDown(KEY_FIVE)) {
         rubik.rotate(4, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyPressed(KEY_SIX)) {
+      } else if (IsKeyDown(KEY_SIX)) {
         rubik.rotate(5, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyPressed(KEY_SEVEN)) {
+      } else if (IsKeyDown(KEY_SEVEN)) {
         rubik.rotate(6, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyPressed(KEY_EIGHT)) {
+      } else if (IsKeyDown(KEY_EIGHT)) {
         rubik.rotate(7, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyPressed(KEY_NINE)) {
+      } else if (IsKeyDown(KEY_NINE)) {
         rubik.rotate(8, IsKeyDown(KEY_RIGHT_SHIFT));
       }
     }
