@@ -38,6 +38,7 @@ struct Face {
   std::vector<uintmax_t> original_blocks;
   // center of movement
   uintmax_t center;
+  uintmax_t original_center;
   // axis of rotation
   Vector3 axis;
 
@@ -46,12 +47,14 @@ struct Face {
       .blocks = blocks,
       .original_blocks = blocks,
       .center = center,
+      .original_center = center,
       .axis = axis
     };
   }
 
   void reset() {
     blocks = original_blocks;
+    center = original_center;
   }
 };
 
@@ -132,6 +135,7 @@ struct Rubik {
       for (auto block_idx : faces[rotating.face_idx].blocks) {
         blocks[block_idx].model.transform = MatrixMultiply(blocks[block_idx].model.transform, MatrixRotate(faces[rotating.face_idx].axis, delta));
       }
+      blocks[faces[rotating.face_idx].center].model.transform = MatrixMultiply(blocks[faces[rotating.face_idx].center].model.transform, MatrixRotate(faces[rotating.face_idx].axis, delta));
       rotating.angle += rotating.angle_delta;
       if (rotating.angle >= 90.0f) {
         end_rotation();
@@ -154,6 +158,9 @@ struct Rubik {
     for (Face& face : faces) {
       face.reset();
     }
+    rotating.face_idx = faces.size();
+    rotating.angle = 0.0f;
+    rotating.direction = false;
     history.clear();
   }
 };
@@ -184,31 +191,49 @@ int main() {
 
   SetTargetFPS(60);
   while (!WindowShouldClose()) {
-    if (rubik.rotating.face_idx >= rubik.faces.size()) {
-      if (IsKeyDown(KEY_Q)) {
-          rubik.reset();
-      } else if (IsKeyPressed(KEY_W)) {
-          engage_random = !engage_random;
-      } else if (IsKeyPressed(KEY_E)) {
-          engage_revert = !engage_revert;
-      } else if (IsKeyDown(KEY_ONE)) {
-        rubik.rotate(0, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyDown(KEY_TWO)) {
-        rubik.rotate(1, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyDown(KEY_THREE)) {
-        rubik.rotate(2, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyDown(KEY_FOUR)) {
-        rubik.rotate(3, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyDown(KEY_FIVE)) {
-        rubik.rotate(4, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyDown(KEY_SIX)) {
-        rubik.rotate(5, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyDown(KEY_SEVEN)) {
-        rubik.rotate(6, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyDown(KEY_EIGHT)) {
-        rubik.rotate(7, IsKeyDown(KEY_RIGHT_SHIFT));
-      } else if (IsKeyDown(KEY_NINE)) {
-        rubik.rotate(8, IsKeyDown(KEY_RIGHT_SHIFT));
+    bool shift_down = (IsKeyDown(KEY_RIGHT_SHIFT) || IsKeyDown(KEY_KP_0));
+    if (IsKeyPressed(KEY_W)) {
+        engage_random = !engage_random;
+        if (engage_random) {
+          engage_revert = false;
+        }
+    } else if (IsKeyPressed(KEY_E)) {
+        engage_revert = !engage_revert;
+        if (engage_revert) {
+          engage_random = false;
+        }
+    } else if (IsKeyDown(KEY_Q)) {
+        rubik.reset();
+        engage_random = false;
+        engage_revert = false;
+    } else if (rubik.rotating.face_idx >= rubik.faces.size()) {
+      if (IsKeyDown(KEY_ONE) || IsKeyDown(KEY_KP_1)) {
+        engage_revert = false;
+        rubik.rotate(0, shift_down);
+      } else if (IsKeyDown(KEY_TWO) || IsKeyDown(KEY_KP_2)) {
+        engage_revert = false;
+        rubik.rotate(1, shift_down);
+      } else if (IsKeyDown(KEY_THREE) || IsKeyDown(KEY_KP_3)) {
+        engage_revert = false;
+        rubik.rotate(2, shift_down);
+      } else if (IsKeyDown(KEY_FOUR) || IsKeyDown(KEY_KP_4)) {
+        engage_revert = false;
+        rubik.rotate(3, shift_down);
+      } else if (IsKeyDown(KEY_FIVE) || IsKeyDown(KEY_KP_5)) {
+        engage_revert = false;
+        rubik.rotate(4, shift_down);
+      } else if (IsKeyDown(KEY_SIX) || IsKeyDown(KEY_KP_6)) {
+        engage_revert = false;
+        rubik.rotate(5, shift_down);
+      } else if (IsKeyDown(KEY_SEVEN) || IsKeyDown(KEY_KP_7)) {
+        engage_revert = false;
+        rubik.rotate(6, shift_down);
+      } else if (IsKeyDown(KEY_EIGHT) || IsKeyDown(KEY_KP_8)) {
+        engage_revert = false;
+        rubik.rotate(7, shift_down);
+      } else if (IsKeyDown(KEY_NINE) || IsKeyDown(KEY_KP_9)) {
+        engage_revert = false;
+        rubik.rotate(8, shift_down);
       } else if (engage_revert) {
           rubik.revert();
       } else if (engage_random) {
@@ -227,6 +252,8 @@ int main() {
         }
         DrawGrid(100.0f, 0.5f);
       EndMode3D();
+      std::string mode_text = (engage_random ? "RANDOM" : (engage_revert ? "REVERT" : "NORMAL")) + std::string(" MODE");
+      DrawText(mode_text.c_str(), 40, 40, 40, RED);
     EndDrawing();
   }
 
